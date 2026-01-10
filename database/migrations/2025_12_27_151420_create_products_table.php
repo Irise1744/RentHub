@@ -9,6 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+    
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->string('category');
             $table->string('condition');
             $table->decimal('price_per_day', 8, 2);
+            $table->string('image_url')->nullable();
             $table->string('location');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
