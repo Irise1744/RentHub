@@ -44,6 +44,18 @@ class Product extends Model
         'image_url',
     ];
 
+    /**
+     * Product rental_status values:
+     * - available: product can be requested/rented
+     * - rented: product is currently rented/out
+     * - unavailable: temporarily unavailable (owner set)
+     */
+
+    protected $casts = [
+        'available_from' => 'datetime',
+        'available_to' => 'datetime',
+    ];
+
     public function owner()
 {
     return $this->belongsTo(User::class, 'owner_id', 'id');

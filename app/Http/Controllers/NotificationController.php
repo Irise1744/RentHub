@@ -3,15 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        // Mark all unread as read once the inbox is opened.
+        $user->notifications()->where('is_read', false)->update(['is_read' => true]);
+
+        $notifications = $user->notifications()
+            ->with(['booking.product'])
+            ->latest()
+            ->paginate(20);
+
+        return view('notifications.index', compact('notifications'));
     }
 
     /**

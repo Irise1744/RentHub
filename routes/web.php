@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\NotificationController;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Booking;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ListingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,11 +27,34 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified'])->get('/home', [UserController::class, 'home'])->name('home');
 Route::middleware(['auth', 'verified'])->get('/my-listings', [UserController::class, 'myListings'])->name('users.my-listings');
 Route::middleware(['auth', 'verified'])->get('/my-product-list', [UserController::class, 'myProductList'])->name('users.my-product-list');
+Route::middleware(['auth', 'verified'])->post('/products/{product}/bookings', [BookingController::class, 'store'])->name('products.bookings.store');
+Route::middleware(['auth', 'verified'])->get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::middleware(['auth', 'verified'])->get('/bookings/requests', [BookingController::class, 'ownerRequests'])->name('bookings.requests');
+Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/accept', [BookingController::class, 'accept'])->name('bookings.accept');
+Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Rental routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-rentals', [ListingController::class, 'myRentals'])->name('listings.my-rentals');
+    Route::get('/rented-out', [ListingController::class, 'rentedOut'])->name('listings.rented-out');
+    Route::get('/all-rentals', [ListingController::class, 'allRentals'])->name('listings.all-rentals')->middleware('can:viewAny,App\Models\Booking');
+});
+
+// Rental history routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-rentals', [BookingController::class, 'myRentals'])->name('rentals.my');
+    Route::get('/rented-out', [BookingController::class, 'rentedOut'])->name('rentals.out');
+
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/all-rentals', [BookingController::class, 'allRentals'])->name('rentals.all');
+    });
 });
 
 require __DIR__ . '/auth.php';

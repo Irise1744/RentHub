@@ -31,7 +31,18 @@
                             <div class="p-5 space-y-3">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-semibold uppercase tracking-wide text-indigo-600">{{ $product->category ?? 'General' }}</span>
-                                <span class="text-xs px-2 py-1 rounded-full {{ $product->status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">{{ ucfirst($product->status ?? 'inactive') }}</span>
+                                @php
+                                    $listingStatus = strtolower($product->status ?? 'inactive');
+                                    $rentalStatus = strtolower($product->rental_status ?? 'available');
+                                    if ($listingStatus !== 'active') {
+                                        $myBadge = ['label' => ucfirst('inactive'), 'class' => 'bg-gray-100 text-gray-600'];
+                                    } elseif ($rentalStatus === 'rented') {
+                                        $myBadge = ['label' => 'Rented', 'class' => 'bg-red-100 text-red-800'];
+                                    } else {
+                                        $myBadge = ['label' => 'Available', 'class' => 'bg-emerald-50 text-emerald-700'];
+                                    }
+                                @endphp
+                                <span class="text-xs px-2 py-1 rounded-full {{ $myBadge['class'] }}">{{ $myBadge['label'] }}</span>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-900 line-clamp-1">{{ $product->title }}</h3>
                             <p class="text-sm text-gray-600 line-clamp-2">{{ $product->description }}</p>

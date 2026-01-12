@@ -9,7 +9,7 @@
                     Monitor recent listings and activity across the platform.
                 </p>
             </div>
-            
+
         </div>
     </x-slot>
 
@@ -41,64 +41,71 @@
             </div>
 
             {{-- Latest products --}}
-            <div class="bg-white shadow-sm rounded-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Latest Products</h3>
-                    <a href="{{ route('products.index') }}" class="text-sm text-indigo-600 hover:underline">
-                        View all
-                    </a>
+<div class="bg-white shadow-sm rounded-lg p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Latest Products</h3>
+        
+    </div>
+
+    @if(isset($products) && $products->count())
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach($products as $product)
+        <div class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+            {{-- Fixed image container --}}
+            <div class="h-40 bg-gray-100 overflow-hidden">
+                <img 
+                    src="{{ $product->image_url ? Storage::url($product->image_url) : asset('storage/products/default.jpg') }}" 
+                    alt="{{ $product->title }}"
+                    class="w-full h-full object-cover"
+                >
+            </div>
+
+            <div class="p-4 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium uppercase tracking-wide text-indigo-600">
+                        {{ $product->category ?? 'General' }}
+                    </span>
+                    @php
+                    $listingStatus = strtolower($product->status ?? 'inactive');
+                    $rentalStatus = strtolower($product->rental_status ?? 'available');
+                    if ($listingStatus !== 'active') {
+                    $dashBadge = ['label' => ucfirst('inactive'), 'class' => 'bg-gray-100 text-gray-600'];
+                    } elseif ($rentalStatus === 'rented') {
+                    $dashBadge = ['label' => 'Rented', 'class' => 'bg-red-100 text-red-800'];
+                    } else {
+                    $dashBadge = ['label' => 'Available', 'class' => 'bg-emerald-50 text-emerald-700'];
+                    }
+                    @endphp
+                    <span class="text-xs px-2 py-1 rounded-full {{ $dashBadge['class'] }}">{{ $dashBadge['label'] }}</span>
                 </div>
 
-                @if(isset($products) && $products->count())
-                    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach($products as $product)
-                            <div class="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
-                                <div class="h-40 bg-gray-100">
-                                    <img src="{{ asset('storage/products/camera.jpeg') }}"
-                                         alt="{{ $product->title }}"
-                                         class="w-full h-full object-cover">
-                                </div>
+                <h4 class="text-sm font-semibold text-gray-900 truncate">
+                    {{ $product->title }}
+                </h4>
 
-                                <div class="p-4 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium uppercase tracking-wide text-indigo-600">
-                                            {{ $product->category ?? 'General' }}
-                                        </span>
-                                        <span class="text-xs px-2 py-1 rounded-full
-                                                     {{ $product->status === 'active'
-                                                         ? 'bg-emerald-50 text-emerald-700'
-                                                         : 'bg-gray-100 text-gray-600' }}">
-                                            {{ ucfirst($product->status ?? 'inactive') }}
-                                        </span>
-                                    </div>
+                <p class="text-xs text-gray-500 truncate">
+                    {{ $product->location ?? 'Unknown location' }}
+                </p>
 
-                                    <h4 class="text-sm font-semibold text-gray-900 truncate">
-                                        {{ $product->title }}
-                                    </h4>
+                <div class="flex items-center justify-between pt-2">
+                    <span class="text-sm font-semibold text-gray-900">
+                        ${{ number_format($product->price_per_day, 2) }}
+                        <span class="text-xs text-gray-500">/ day</span>
+                    </span>
 
-                                    <p class="text-xs text-gray-500 truncate">
-                                        {{ $product->location ?? 'Unknown location' }}
-                                    </p>
-
-                                    <div class="flex items-center justify-between pt-2">
-                                        <span class="text-sm font-semibold text-gray-900">
-                                            ${{ number_format($product->price_per_day, 2) }}
-                                            <span class="text-xs text-gray-500">/ day</span>
-                                        </span>
-
-                                        <a href="{{ route('products.show', $product->product_id ?? $product->id) }}"
-                                           class="text-xs font-medium text-indigo-600 hover:underline">
-                                            View details
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-gray-500 text-sm">No products available yet.</p>
-                @endif
+                    <a href="{{ route('products.show', $product->product_id ?? $product->id) }}"
+                        class="text-xs font-medium text-indigo-600 hover:underline">
+                        View details
+                    </a>
+                </div>
             </div>
+        </div>
+        @endforeach
+    </div>
+    @else
+    <p class="text-gray-500 text-sm">No products available yet.</p>
+    @endif
+</div>
         </div>
     </div>
 </x-app-layout>

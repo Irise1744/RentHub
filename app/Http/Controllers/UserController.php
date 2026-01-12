@@ -93,15 +93,30 @@ class UserController extends Controller
             ->take(6)
             ->get();
 
-        $myProducts = Product::where('owner_id', $user->id)
-            ->latest()
-            ->take(9)
-            ->get();
+        // Allow filtering by listing status via ?filter=active|inactive|all
+        $filter = strtolower($request->query('filter', 'all'));
+
+        $myProductsQuery = Product::where('owner_id', $user->id)->latest();
+        if (in_array($filter, ['active', 'inactive'])) {
+            $myProductsQuery->where('status', $filter);
+        }
+
+        // paginate results and preserve query string (filter)
+        $myProducts = $myProductsQuery->paginate(9)->withQueryString();
+
+        // counts for tabs
+        $totalCount = Product::where('owner_id', $user->id)->count();
+        $activeCount = Product::where('owner_id', $user->id)->where('status', 'active')->count();
+        $inactiveCount = Product::where('owner_id', $user->id)->where('status', 'inactive')->count();
 
         return view('users.my-product-list', [
             'user' => $user,
             'featuredProducts' => $featuredProducts,
             'myProducts' => $myProducts,
+            'filter' => $filter,
+            'totalCount' => $totalCount,
+            'activeCount' => $activeCount,
+            'inactiveCount' => $inactiveCount,
         ]);
     }
 

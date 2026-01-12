@@ -21,7 +21,20 @@
                         <h2 class="text-xl font-bold text-gray-900">Your Listings</h2>
                         <p class="text-gray-600 text-sm">A quick view of items you are offering.</p>
                     </div>
-                    <a href="{{ route('users.my-listings') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Manage all</a>
+                    <div class="flex items-center gap-3">
+                        <nav class="inline-flex rounded-lg bg-gray-50 p-1 border border-gray-100">
+                            <a href="?filter=all" class="px-3 py-2 text-sm font-medium rounded-lg {{ $filter === 'all' ? 'bg-white text-gray-900' : 'text-gray-600 hover:bg-gray-100' }}">
+                                All ({{ $totalCount ?? 0 }})
+                            </a>
+                            <a href="?filter=active" class="px-3 py-2 text-sm font-medium rounded-lg {{ $filter === 'active' ? 'bg-white text-gray-900' : 'text-gray-600 hover:bg-gray-100' }}">
+                                Active ({{ $activeCount ?? 0 }})
+                            </a>
+                            <a href="?filter=inactive" class="px-3 py-2 text-sm font-medium rounded-lg {{ $filter === 'inactive' ? 'bg-white text-gray-900' : 'text-gray-600 hover:bg-gray-100' }}">
+                                Inactive ({{ $inactiveCount ?? 0 }})
+                            </a>
+                        </nav>
+                        <a href="{{ route('users.my-listings') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Manage all</a>
+                    </div>
                 </div>
 
                 @if($myProducts->count())
@@ -30,7 +43,18 @@
                             <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/50">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-xs font-semibold uppercase tracking-wide text-indigo-600">{{ $product->category ?? 'General' }}</span>
-                                    <span class="text-xs px-2 py-1 rounded-full {{ $product->status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">{{ ucfirst($product->status ?? 'inactive') }}</span>
+                                    @php
+                                        $listingStatus = strtolower($product->status ?? 'inactive');
+                                        $rentalStatus = strtolower($product->rental_status ?? 'available');
+                                        if ($listingStatus !== 'active') {
+                                            $mpBadge = ['label' => ucfirst('inactive'), 'class' => 'bg-gray-100 text-gray-600'];
+                                        } elseif ($rentalStatus === 'rented') {
+                                            $mpBadge = ['label' => 'Rented', 'class' => 'bg-red-100 text-red-800'];
+                                        } else {
+                                            $mpBadge = ['label' => 'Available', 'class' => 'bg-emerald-50 text-emerald-700'];
+                                        }
+                                    @endphp
+                                    <span class="text-xs px-2 py-1 rounded-full {{ $mpBadge['class'] }}">{{ $mpBadge['label'] }}</span>
                                 </div>
                                 <div class="text-base font-semibold text-gray-900 line-clamp-1">{{ $product->title }}</div>
                                 <p class="text-sm text-gray-600 line-clamp-2 mb-3">{{ $product->description }}</p>
@@ -40,6 +64,10 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+
+                    <div class="mt-6">
+                        {{ $myProducts->links() }}
                     </div>
                 @else
                     <div class="text-center text-gray-600 py-8">
@@ -83,9 +111,18 @@
                                             @endif
                                         </div>
                                         <div class="absolute -top-2 -right-2">
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold {{ $product->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800' }}">
-                                                {{ ucfirst($product->status ?? 'inactive') }}
-                                            </span>
+                                                @php
+                                                    $listingStatus = strtolower($product->status ?? 'inactive');
+                                                    $rentalStatus = strtolower($product->rental_status ?? 'available');
+                                                    if ($listingStatus !== 'active') {
+                                                        $featBadge = ['label' => ucfirst('inactive'), 'class' => 'bg-gray-100 text-gray-800'];
+                                                    } elseif ($rentalStatus === 'rented') {
+                                                        $featBadge = ['label' => 'Rented', 'class' => 'bg-red-100 text-red-800'];
+                                                    } else {
+                                                        $featBadge = ['label' => 'Available', 'class' => 'bg-emerald-100 text-emerald-800'];
+                                                    }
+                                                @endphp
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold {{ $featBadge['class'] }}">{{ $featBadge['label'] }}</span>
                                         </div>
                                     </div>
 

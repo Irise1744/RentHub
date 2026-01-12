@@ -65,11 +65,18 @@
             <td class="px-4 py-4 text-sm text-gray-700">${{ number_format($product->price_per_day, 2) }} / day</td>
 
             <td class="px-4 py-4">
-              @if(strtoupper($product->status) === 'ACTIVE')
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">ACTIVE</span>
-              @else
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">INACTIVE</span>
-              @endif
+              @php
+                $listingStatus = strtolower($product->status ?? 'inactive');
+                $rentalStatus = strtolower($product->rental_status ?? 'available');
+                if ($listingStatus !== 'active') {
+                  $adminBadge = ['label' => 'INACTIVE', 'class' => 'bg-gray-100 text-gray-700'];
+                } elseif ($rentalStatus === 'rented') {
+                  $adminBadge = ['label' => 'RENTED', 'class' => 'bg-red-100 text-red-800'];
+                } else {
+                  $adminBadge = ['label' => 'ACTIVE', 'class' => 'bg-green-100 text-green-800'];
+                }
+              @endphp
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $adminBadge['class'] }}">{{ $adminBadge['label'] }}</span>
             </td>
 
             <td class="px-4 py-4 text-sm">

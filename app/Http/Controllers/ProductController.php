@@ -16,7 +16,9 @@ class ProductController extends Controller
     {
         $userId = $request->user()?->id;
 
+        // Only show active products to other users
         $products = Product::with('owner')
+            ->where('status', 'active') // Only show active AND available listings
             ->when($userId, fn($q) => $q->where('owner_id', '!=', $userId))
             ->latest()
             ->paginate(20);
@@ -24,14 +26,15 @@ class ProductController extends Controller
         return view('products.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
         return view('products.create');
     }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -52,6 +55,7 @@ class ProductController extends Controller
             'available_from' => ['nullable', 'date'],
             'available_to' => ['nullable', 'date', 'after_or_equal:available_from'],
             'image' => ['nullable', 'image', 'max:2048'],
+            'status' => ['nullable', 'in:active,inactive'], // Add status validation
         ]);
 
         $imagePath = null;
@@ -67,36 +71,13 @@ class ProductController extends Controller
             'condition' => $validated['condition'],
             'price_per_day' => $validated['price_per_day'],
             'location' => $validated['location'],
-            'status' => 'active',
+            'status' => $validated['status'] ?? 'active', // Default to inactive if not provided
             'available_from' => $validated['available_from'] ?? null,
             'available_to' => $validated['available_to'] ?? null,
             'image_url' => $imagePath,
         ]);
 
         return redirect()->route('users.my-listings')->with('success', 'Listing created successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        $product->load('owner');
-
-        return view('products.show', compact('product'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        $user = Auth::user();
-        if (! $user || ($product->owner_id !== $user->id && ! $user->is_admin)) {
-            abort(403);
-        }
-
-        return view('products.edit', compact('product'));
     }
 
     /**
@@ -119,6 +100,7 @@ class ProductController extends Controller
             'available_from' => ['nullable', 'date'],
             'available_to' => ['nullable', 'date', 'after_or_equal:available_from'],
             'image' => ['nullable', 'image', 'max:2048'],
+            'status' => ['required', 'in:active,inactive,rented'], // Add status to update
         ]);
 
         if ($request->hasFile('image')) {
@@ -135,6 +117,7 @@ class ProductController extends Controller
             'condition' => $validated['condition'],
             'price_per_day' => $validated['price_per_day'],
             'location' => $validated['location'],
+            'status' => $validated['status'], // Update status
             'available_from' => $validated['available_from'] ?? null,
             'available_to' => $validated['available_to'] ?? null,
         ]);
@@ -143,21 +126,79 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Toggle product status (active/inactive/rented)
      */
-    public function destroy(Product $product)
+    public function toggleStatus(Product $product)
     {
         $user = Auth::user();
-        if (! $user || ($product->owner_id !== $user->id && ! $user->is_admin)) {
+        if (!$user || ($product->owner_id !== $user->id && !$user->is_admin)) {
             abort(403);
         }
 
+        $newStatus = 'active';
+
+        // Cycle through: active → inactive → rented → active
+        if ($product->status === 'active') {
+            $newStatus = 'inactive';
+        } elseif ($product->status === 'inactive') {
+            $newStatus = 'rented';
+        } elseif ($product->status === 'rented') {
+            $newStatus = 'active';
+        }
+
+        $product->update(['status' => $newStatus]);
+
+        return back()->with('success', "Listing status updated to {$newStatus}.");
+    }
+
+    /**
+     * Mark product as rented (alternative method)
+     */
+    public function markAsRented(Product $product)
+    {
+        $user = Auth::user();
+        if (!$user || ($product->owner_id !== $user->id && !$user->is_admin)) {
+            abort(403);
+        }
+
+        $product->update(['status' => 'rented']);
+
+        return back()->with('success', 'Product marked as rented.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
+    {
+        $product->load('owner');
+        return view('products.show', compact('product'));
+    }
+
+    /**
+     * Remove the specified product from storage.
+     */
+
+    public function destroy(Product $product)
+    {
+        $user = Auth::user();
+        if (!$user || ($product->owner_id !== $user->id && !$user->is_admin)) {
+            abort(403); // Ensure only the owner or admin can delete the product
+        }
+
+        // Delete the product image from storage if it exists
         if ($product->image_url) {
             Storage::disk('public')->delete($product->image_url);
         }
 
+        // Delete the product
         $product->delete();
 
-        return redirect()->route('users.my-listings')->with('success', 'Listing removed successfully.');
+        // Redirect based on user role
+        if ($user->is_admin) {
+            return redirect()->route('dashboard')->with('success', 'Product deleted successfully.');
+        }
+
+        return redirect()->route('users.my-listings')->with('success', 'Product deleted successfully.');
     }
 }
