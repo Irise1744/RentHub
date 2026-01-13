@@ -73,7 +73,19 @@
                             </select>
                         </div>
 
-                        
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">
+                                PHONE
+                            </label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                value="{{ old('phone', $user->phone) }}"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200
+                                       focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                                placeholder="e.g. +1 555 555 5555"
+                            >
+                        </div>
                     </div>
 
                     <!-- Address -->

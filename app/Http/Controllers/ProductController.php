@@ -20,6 +20,10 @@ class ProductController extends Controller
         $products = Product::with('owner')
             ->where('status', 'active') // Only show active AND available listings
             ->when($userId, fn($q) => $q->where('owner_id', '!=', $userId))
+            ->when($request->has('search') && !empty($request->search), function ($query) use ($request) {
+                $query->where('title', 'like', '%' . $request->search . '%')
+                      ->orWhere('description', 'like', '%' . $request->search . '%');
+            })
             ->latest()
             ->paginate(20);
 
@@ -200,5 +204,10 @@ class ProductController extends Controller
         }
 
         return redirect()->route('users.my-listings')->with('success', 'Product deleted successfully.');
+    }
+
+    public function edit(\App\Models\Product $product)
+    {
+        return view('products.edit', compact('product'));
     }
 }

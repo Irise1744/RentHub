@@ -76,9 +76,31 @@
                             <div class="flex-1">
                                 <div class="flex items-start space-x-4">
                                     <!-- Clean Avatar -->
+                                    @php
+                                        $profilePath = optional($user)->profile_image
+                                            ?? optional($user)->avatar
+                                            ?? optional($user)->photo
+                                            ?? optional($user)->avatar_url
+                                            ?? null;
+
+                                        if ($profilePath) {
+                                            $avatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
+                                                ? $profilePath
+                                                : \Illuminate\Support\Facades\Storage::url($profilePath);
+                                        } else {
+                                            $name = trim($user->name ?? 'U');
+                                            $parts = preg_split('/\s+/', $name);
+                                            $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
+                                            $bg = '#3b82f6';
+                                            $fg = '#ffffff';
+                                            $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='100%' height='100%' fill='{$bg}' rx='24'/><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text></svg>";
+                                            $avatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                                        }
+                                    @endphp
+
                                     <div class="relative">
-                                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">
-                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                                         </div>
                                         <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
                                             <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">

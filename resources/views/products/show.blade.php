@@ -2,7 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold text-gray-900">Listing Details</h2>
-            <a href="{{ route('products.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700">Back to Discover</a>
+            <a href="{{ auth()->user()->role === 'admin' ? route('admin.dashboard') : route('products.index') }}" 
+               class="text-sm font-medium text-blue-600 hover:text-blue-700">
+                Back to {{ auth()->user()->role === 'admin' ? 'Product List' : 'Discover' }}
+            </a>
         </div>
     </x-slot>
 

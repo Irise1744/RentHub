@@ -88,15 +88,44 @@
 
     <!-- User Profile -->
     <div class="border-t border-gray-200 p-4">
-        <div class="flex items-center space-x-3">
-            <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center font-semibold text-gray-700">
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+        @php
+            $user = Auth::user();
+            $profilePath = optional($user)->profile_image
+                ?? optional($user)->avatar
+                ?? optional($user)->photo
+                ?? null;
+
+            if ($profilePath) {
+                $avatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
+                    ? $profilePath
+                    : \Illuminate\Support\Facades\Storage::url($profilePath);
+            } else {
+                $name = trim($user->name ?? 'U');
+                $parts = preg_split('/\s+/', $name);
+                $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
+                $bg = '#3b82f6';
+                $fg = '#ffffff';
+                $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='100%' height='100%' fill='{$bg}' rx='24'/><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text></svg>";
+                $avatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
+            }
+        @endphp
+
+        <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 hover:bg-gray-50 rounded-md p-2">
+            <div class="h-8 w-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center">
+                <img src="{{ $avatarUrl }}" alt="{{ $user->name ?? 'User' }}" class="w-full h-full object-cover">
             </div>
             <div x-show="$store.sidebar.open" class="flex-1">
-                <div class="text-sm font-medium">{{ Auth::user()->name }}</div>
-                <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="text-sm font-medium flex items-center gap-2">
+                    {{ $user->name }}
+                    @if(optional($user)->is_admin || optional($user)->role === 'admin')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                            ADMIN
+                        </span>
+                    @endif
+                </div>
+                <div class="text-xs text-gray-500">{{ $user->email }}</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- 🔴 LOGOUT BUTTON -->

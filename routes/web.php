@@ -61,6 +61,7 @@ require __DIR__ . '/auth.php';
 
 // Product routes
 Route::resource('products', ProductController::class);
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
 // Users routes
 Route::resource('users', UserController::class)->only(['index', 'show', 'edit', 'update', 'create', 'store', 'destroy']);
