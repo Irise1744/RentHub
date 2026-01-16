@@ -20,11 +20,15 @@
                     <x-nav-link :href="route('users.my-listings')" :active="request()->routeIs('users.my-listings')">
                         {{ __('My Listings') }}
                     </x-nav-link>
-                    
+                    <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.*')">
+                        {{ __('My Bookings') }}
+                    </x-nav-link>
+
+
                 </div>
             </div>
 
-            <!-- Right Side Actions --> 
+            <!-- Right Side Actions -->
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
                 <!-- Write Button -->
                 <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition">
@@ -36,16 +40,16 @@
 
                 <!-- Notifications -->
                 @php
-                    $unreadNotifications = Auth::user()?->notifications()->where('is_read', false)->count();
+                $unreadNotifications = Auth::user()?->notifications()->where('is_read', false)->count();
                 @endphp
                 <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-600 hover:text-gray-900" aria-label="Notifications">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     @if(($unreadNotifications ?? 0) > 0)
-                        <span class="absolute -top-1 -right-1 inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white">
-                            {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
-                        </span>
+                    <span class="absolute -top-1 -right-1 inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white">
+                        {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
+                    </span>
                     @endif
                 </a>
 
@@ -53,26 +57,28 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         @php
-                            $user = Auth::user();
-                            // check common columns that might store the profile image
-                            $profilePath = optional($user)->profile_image
-                                ?? optional($user)->avatar
-                                ?? optional($user)->photo
-                                ?? null;
-                            if ($profilePath) {
-                                $avatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
-                                    ? $profilePath
-                                    : \Illuminate\Support\Facades\Storage::url($profilePath);
-                            } else {
-                                // create an initials SVG data URI as a personalized fallback
-                                $name = trim($user->name ?? 'U');
-                                $parts = preg_split('/\s+/', $name);
-                                $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
-                                $bg = '#3b82f6';
-                                $fg = '#ffffff';
-                                $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='100%' height='100%' fill='{$bg}' rx='24'/><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text></svg>";
-                                $avatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
-                            }
+                        $user = Auth::user();
+                        // check common columns that might store the profile image
+                        $profilePath = optional($user)->profile_image
+                        ?? optional($user)->avatar
+                        ?? optional($user)->photo
+                        ?? null;
+                        if ($profilePath) {
+                        $avatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
+                        ? $profilePath
+                        : \Illuminate\Support\Facades\Storage::url($profilePath);
+                        } else {
+                        // create an initials SVG data URI as a personalized fallback
+                        $name = trim($user->name ?? 'U');
+                        $parts = preg_split('/\s+/', $name);
+                        $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
+                        $bg = '#3b82f6';
+                        $fg = '#ffffff';
+                        $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+                            <rect width='100%' height='100%' fill='{$bg}' rx='24' /><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text>
+                        </svg>";
+                        $avatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                        }
                         @endphp
 
                         <button class="flex items-center space-x-2 focus:outline-none">
@@ -89,14 +95,14 @@
                             <div class="font-medium text-gray-900">{{ Auth::user()->name }}</div>
                             <div class="text-sm text-gray-500">{{ Auth::user()->email }}</div>
                         </div>
-                        
+
                         <x-dropdown-link :href="route('profile.edit')">
                             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             {{ __('Profile') }}
                         </x-dropdown-link>
-                        
+
                         <x-dropdown-link :href="route('users.my-listings')">
                             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -110,16 +116,16 @@
                             </svg>
                             {{ __('My Product List') }}
                         </x-dropdown-link>
-                        
+
                         <x-dropdown-link href="#">
                             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
                             {{ __('Bookmarks') }}
                         </x-dropdown-link>
-                        
+
                         <div class="border-t border-gray-100"></div>
-                        
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
@@ -175,21 +181,23 @@
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 @php
-                    $user = Auth::user();
-                    $profilePath = optional($user)->profile_image ?? null;
-                    if ($profilePath) {
-                        $respAvatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
-                            ? $profilePath
-                            : \Illuminate\Support\Facades\Storage::url($profilePath);
-                    } else {
-                        $name = trim($user->name ?? 'U');
-                        $parts = preg_split('/\s+/', $name);
-                        $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
-                        $bg = '#3b82f6';
-                        $fg = '#ffffff';
-                        $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='100%' height='100%' fill='{$bg}' rx='24'/><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text></svg>";
-                        $respAvatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
-                    }
+                $user = Auth::user();
+                $profilePath = optional($user)->profile_image ?? null;
+                if ($profilePath) {
+                $respAvatarUrl = \Illuminate\Support\Str::startsWith($profilePath, ['http://', 'https://', '/'])
+                ? $profilePath
+                : \Illuminate\Support\Facades\Storage::url($profilePath);
+                } else {
+                $name = trim($user->name ?? 'U');
+                $parts = preg_split('/\s+/', $name);
+                $initials = strtoupper(substr($parts[0] ?? 'U', 0, 1) . substr($parts[1] ?? '', 0, 1));
+                $bg = '#3b82f6';
+                $fg = '#ffffff';
+                $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+                    <rect width='100%' height='100%' fill='{$bg}' rx='24' /><text x='50%' y='55%' font-family='Arial, Helvetica, sans-serif' font-size='56' fill='{$fg}' text-anchor='middle' dominant-baseline='middle'>{$initials}</text>
+                </svg>";
+                $respAvatarUrl = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                }
                 @endphp
 
                 <div class="flex items-center gap-3">
@@ -219,7 +227,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>

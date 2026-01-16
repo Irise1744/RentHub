@@ -625,73 +625,7 @@
             @endif
 
             <!-- Product History Table -->
-                        <div class="mb-10">
-                            <div class="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-                                <!-- Section Header -->
-                                <div class="bg-gradient-to-r from-blue-50 to-teal-50 p-6 border-b border-gray-200">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-400 rounded-lg flex items-center justify-center mr-4">
-                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h2 class="text-xl font-bold text-gray-900">Product History Table</h2>
-                                                <p class="text-sm text-gray-600 mt-1">A summary of product history</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- History Table -->
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price/Day</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            @forelse($products as $product)
-                                            <tr class="hover:bg-gray-50 transition-colors">
-                                                <td class="px-6 py-4">
-                                                    <div class="flex items-center">
-                                                        @if($product->image_url)
-                                                        <div class="h-10 w-10 rounded-lg overflow-hidden mr-3">
-                                                            <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image_url) }}"
-                                                                alt="{{ $product->title }}"
-                                                                class="h-full w-full object-cover">
-                                                        </div>
-                                                        @endif
-                                                        <div>
-                                                            <div class="font-medium text-gray-900">{{ $product->title }}</div>
-                                                            <div class="text-sm text-gray-500">{{ $product->category ?? 'General' }}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="text-sm text-gray-900">{{ $product->owner->name ?? 'Unknown' }}</div>
-                                                    <div class="text-sm text-gray-500">{{ $product->owner->phone ?? 'No phone' }}</div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="font-medium text-gray-900">${{ number_format($product->price_per_day, 2) }}/day</div>
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr>
-                                                <td colspan="3" class="px-6 py-8 text-center text-gray-500">
-                                                    No product history available
-                                                </td>
-                                            </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+  
 
             <!-- Footer -->
             <div class="pt-8 border-t border-gray-200">

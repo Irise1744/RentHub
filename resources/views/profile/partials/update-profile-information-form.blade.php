@@ -44,6 +44,16 @@
             @csrf
             @method('patch')
 
+            <!-- Hidden file input for avatar -->
+            <input id="avatar"
+                   name="avatar"
+                   type="file"
+                   accept="image/*"
+                   class="hidden">
+            @error('avatar')
+            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+
             <!-- Two Column Layout -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Left Column -->
@@ -374,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarPlaceholder = document.getElementById('avatar-placeholder');
     
     // If camera icon exists, add click event
-    if (cameraIcon) {
+    if (cameraIcon && fileInput) {
         cameraIcon.addEventListener('click', function() {
             fileInput.click();
         });

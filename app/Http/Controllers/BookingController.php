@@ -15,9 +15,19 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Get the logged-in user
+        $user = $request->user();
+
+        // Fetch bookings where the logged-in user is the renter
+        $bookings = Booking::with(['product', 'owner'])
+            ->where('renter_id', $user->id)
+            ->orderBy('start_date', 'desc') // Order by start date (most recent first)
+            ->paginate(10); // Paginate results
+
+        // Return the bookings to the view
+        return view('bookings.index', compact('bookings'));
     }
 
     /**
@@ -100,86 +110,86 @@ class BookingController extends Controller
         return view('bookings.requests', compact('requests'));
     }
 
- public function accept(Request $request, Booking $booking)
-{
-    $user = $request->user();
+    public function accept(Request $request, Booking $booking)
+    {
+        $user = $request->user();
 
-    // 1️⃣ Authorization: only owner can accept
-    if (! $user || ($booking->product?->owner_id !== $user->id && ! ($user->is_admin ?? false))) {
-        abort(403, 'You are not authorized to accept this booking.');
-    }
-
-    // 2️⃣ Check if booking is still pending
-    if ($booking->status !== 'pending') {
-        return back()->with('error', 'This booking has already been processed.');
-    }
-
-    // 3️⃣ Wrap in a transaction to ensure atomicity
-    DB::transaction(function () use ($booking) {
-        // a) Mark booking as completed/confirmed
-        $booking->update(['status' => 'completed']);
-
-        // b) Update product rental_status and availability window
-        $product = $booking->product;
-        if ($product) {
-            $product->update([
-                'status' => 'inactive',
-                'available_from' => $booking->start_date,
-                'available_to' => $booking->end_date,
-            ]);
+        // 1️⃣ Authorization: only owner can accept
+        if (! $user || ($booking->product?->owner_id !== $user->id && ! ($user->is_admin ?? false))) {
+            abort(403, 'You are not authorized to accept this booking.');
         }
 
-        // c) Notify the renter
-        Notification::create([
-            'user_id' => $booking->renter_id,
-            'type' => 'booking_response',
-            'booking_id' => $booking->booking_id,
-            'message' => sprintf('Your booking for "%s" has been accepted.', $product?->title ?? 'the item'),
-            'is_read' => false,
-        ]);
-    });
+        // 2️⃣ Check if booking is still pending
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'This booking has already been processed.');
+        }
 
-    // 4️⃣ Return back with success message
-    return back()->with('success', 'Booking accepted.');
-}
+        // 3️⃣ Wrap in a transaction to ensure atomicity
+        DB::transaction(function () use ($booking) {
+            // a) Mark booking as completed/confirmed
+            $booking->update(['status' => 'completed']);
+
+            // b) Update product rental_status and availability window
+            $product = $booking->product;
+            if ($product) {
+                $product->update([
+                    'status' => 'inactive',
+                    'available_from' => $booking->start_date,
+                    'available_to' => $booking->end_date,
+                ]);
+            }
+
+            // c) Notify the renter
+            Notification::create([
+                'user_id' => $booking->renter_id,
+                'type' => 'booking_response',
+                'booking_id' => $booking->booking_id,
+                'message' => sprintf('Your booking for "%s" has been accepted.', $product?->title ?? 'the item'),
+                'is_read' => false,
+            ]);
+        });
+
+        // 4️⃣ Return back with success message
+        return back()->with('success', 'Booking accepted.');
+    }
 
 
     public function reject(Request $request, Booking $booking)
-{
-    $user = $request->user();
-    if (! $user || $booking->product?->owner_id !== $user->id) {
-        abort(403);
-    }
-
-    if ($booking->status !== 'pending') {
-        return back()->with('error', 'This booking has already been processed.');
-    }
-
-    DB::transaction(function () use ($booking) {
-        // mark booking as rejected
-        $booking->update(['status' => 'rejected']);
-
-        // ensure product rental status becomes available again
-        $product = $booking->product;
-        if ($product) {
-            $product->update([
-                'rental_status' => 'available',
-                'available_from' => null,
-                'available_to' => null,
-            ]);
+    {
+        $user = $request->user();
+        if (! $user || $booking->product?->owner_id !== $user->id) {
+            abort(403);
         }
 
-        Notification::create([
-            'user_id' => $booking->renter_id,
-            'type' => 'booking_response',
-            'booking_id' => $booking->booking_id,
-            'message' => sprintf('Your booking for "%s" was rejected by the owner.', $product?->title ?? 'the item'),
-            'is_read' => false,
-        ]);
-    });
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'This booking has already been processed.');
+        }
 
-    return back()->with('success', 'Booking rejected.');
-}
+        DB::transaction(function () use ($booking) {
+            // mark booking as rejected
+            $booking->update(['status' => 'rejected']);
+
+            // ensure product rental status becomes available again
+            $product = $booking->product;
+            if ($product) {
+                $product->update([
+                    'rental_status' => 'available',
+                    'available_from' => null,
+                    'available_to' => null,
+                ]);
+            }
+
+            Notification::create([
+                'user_id' => $booking->renter_id,
+                'type' => 'booking_response',
+                'booking_id' => $booking->booking_id,
+                'message' => sprintf('Your booking for "%s" was rejected by the owner.', $product?->title ?? 'the item'),
+                'is_read' => false,
+            ]);
+        });
+
+        return back()->with('success', 'Booking rejected.');
+    }
 
     /**
      * Complete a booking and mark product as available again
