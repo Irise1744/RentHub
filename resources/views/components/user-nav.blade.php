@@ -1,17 +1,16 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
+            <div class="flex items-center">
+                <!-- Logo - Made Smaller -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}" class="flex items-center">
-                        <x-application-logo class="block h-8 w-auto fill-current text-gray-800" />
-                        <span class="ml-2 text-xl font-bold text-gray-900">BlogSpace</span>
+                        <x-application-logo class="block h-4 w-auto fill-current text-gray-00" />
                     </a>
                 </div>
 
                 <!-- Primary Navigation Links -->
-                <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:space-x-8">
+                <div class="hidden sm:flex sm:ml-8 sm:space-x-6">
                     <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
                         {{ __('Home') }}
                     </x-nav-link>
@@ -21,23 +20,12 @@
                     <x-nav-link :href="route('users.my-listings')" :active="request()->routeIs('users.my-listings')">
                         {{ __('My Listings') }}
                     </x-nav-link>
-                   
+                    
                 </div>
             </div>
 
             <!-- Right Side Actions --> 
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
-                <!-- Search -->
-                <!-- <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input type="search" placeholder="Search stories..."
-                           class="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div> -->
-
                 <!-- Write Button -->
                 <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +39,7 @@
                     $unreadNotifications = Auth::user()?->notifications()->where('is_read', false)->count();
                 @endphp
                 <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-600 hover:text-gray-900" aria-label="Notifications">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     @if(($unreadNotifications ?? 0) > 0)
@@ -88,9 +76,9 @@
                         @endphp
 
                         <button class="flex items-center space-x-2 focus:outline-none">
-                            <img src="{{ $avatarUrl }}" alt="{{ $user->name ?? 'User' }}" class="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm">
+                            <img src="{{ $avatarUrl }}" alt="{{ $user->name ?? 'User' }}" class="h-8 w-8 rounded-full object-cover ring-1 ring-gray-200 shadow-sm">
                             <span class="hidden md:inline text-sm font-medium text-gray-700">{{ $user->name }}</span>
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
@@ -169,6 +157,9 @@
             <x-responsive-nav-link :href="route('users.my-listings')" :active="request()->routeIs('users.my-listings')">
                 {{ __('My Listings') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rentals.index')" :active="request()->routeIs('rentals.*')">
+                {{ __('Rental') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link href="#">
                 {{ __('Bookmarks') }}
             </x-responsive-nav-link>
@@ -202,7 +193,7 @@
                 @endphp
 
                 <div class="flex items-center gap-3">
-                    <img src="{{ $respAvatarUrl }}" alt="{{ $user->name ?? 'User' }}" class="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm">
+                    <img src="{{ $respAvatarUrl }}" alt="{{ $user->name ?? 'User' }}" class="w-10 h-10 rounded-full object-cover ring-1 ring-gray-200 shadow-sm">
                     <div>
                         <div class="font-medium text-base text-gray-800">{{ $user->name }}</div>
                         <div class="font-medium text-sm text-gray-500">{{ $user->email }}</div>
@@ -216,6 +207,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('users.my-listings')">
                     {{ __('My Listings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('rentals.index')" :active="request()->routeIs('rentals.*')">
+                    {{ __('Rental') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="#">
                     {{ __('Bookmarks') }}

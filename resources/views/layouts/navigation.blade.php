@@ -18,7 +18,7 @@
                 <span x-show="$store.sidebar.open"
                       x-transition.opacity.duration.300ms
                       class="text-xl font-semibold text-gray-800 whitespace-nowrap">
-                    {{ config('app.name', 'Laravel') }}
+                    <!-- {{ config('app.name') }} -->
                 </span>
             </a>
 

@@ -10,11 +10,14 @@ use App\Models\Booking;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\RentalController;
+use App\Http\Controllers\BrowseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
+
 
 Route::get('/dashboard', function () {
     $products = Product::where('status', 'active')->latest()->take(10)->get();
@@ -33,7 +36,10 @@ Route::middleware(['auth', 'verified'])->get('/bookings/requests', [BookingContr
 Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/accept', [BookingController::class, 'accept'])->name('bookings.accept');
 Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
 Route::middleware(['auth', 'verified'])->post('/bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
-
+Route::middleware(['auth', 'verified'])->get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/rentals', [RentalController::class, 'index'])->name('rentals.index');
+});
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -57,11 +63,16 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// Borrowed products history
+Route::get('/discovered/history', [BrowseController::class, 'history'])->name('discovered.history')->middleware('auth');
+
 require __DIR__ . '/auth.php';
 
 // Product routes
 Route::resource('products', ProductController::class);
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+});
 
 // Users routes
 Route::resource('users', UserController::class)->only(['index', 'show', 'edit', 'update', 'create', 'store', 'destroy']);
@@ -81,3 +92,5 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/users/{id}/edit', [UserController::class, 'edit'])
         ->name('users.edit');
 });
+Route::middleware(['auth', 'verified'])->post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+Route::middleware(['auth', 'verified'])->post('/products/{product}/mark-rented', [ProductController::class, 'markRented'])->name('products.mark-rented');

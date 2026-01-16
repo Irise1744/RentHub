@@ -24,10 +24,27 @@ class ProductController extends Controller
                 $query->where('title', 'like', '%' . $request->search . '%')
                       ->orWhere('description', 'like', '%' . $request->search . '%');
             })
+            ->when($request->has('category') && !empty($request->category), function ($query) use ($request) {
+                $query->where('category', $request->category);
+            })
+            ->when($request->has('sort') && !empty($request->sort), function ($query) use ($request) {
+                if ($request->sort === 'price_low') {
+                    $query->orderBy('price_per_day', 'asc');
+                } elseif ($request->sort === 'price_high') {
+                    $query->orderBy('price_per_day', 'desc');
+                } elseif ($request->sort === 'newest') {
+                    $query->orderBy('created_at', 'desc');
+                }
+            })
             ->latest()
             ->paginate(20);
 
-        return view('products.index', compact('products'));
+        $borrowedProducts = $request->user()?->borrowedProducts()->with('owner')->get();
+
+        return view('products.index', [
+            'products' => $products,
+            'borrowedProducts' => $borrowedProducts
+        ]);
     }
 
     public function create()
@@ -104,7 +121,7 @@ class ProductController extends Controller
             'available_from' => ['nullable', 'date'],
             'available_to' => ['nullable', 'date', 'after_or_equal:available_from'],
             'image' => ['nullable', 'image', 'max:2048'],
-            'status' => ['required', 'in:active,inactive,rented'], // Add status to update
+            'status' => ['nullable', 'in:active,inactive,rented'], // Make status optional
         ]);
 
         if ($request->hasFile('image')) {
@@ -121,7 +138,7 @@ class ProductController extends Controller
             'condition' => $validated['condition'],
             'price_per_day' => $validated['price_per_day'],
             'location' => $validated['location'],
-            'status' => $validated['status'], // Update status
+            // 'status' => $validated['status'], // Update status
             'available_from' => $validated['available_from'] ?? null,
             'available_to' => $validated['available_to'] ?? null,
         ]);
@@ -130,7 +147,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Toggle product status (active/inactive/rented)
+     * Toggle product status (active/inactive)
      */
     public function toggleStatus(Product $product)
     {
@@ -139,24 +156,16 @@ class ProductController extends Controller
             abort(403);
         }
 
-        $newStatus = 'active';
-
-        // Cycle through: active → inactive → rented → active
-        if ($product->status === 'active') {
-            $newStatus = 'inactive';
-        } elseif ($product->status === 'inactive') {
-            $newStatus = 'rented';
-        } elseif ($product->status === 'rented') {
-            $newStatus = 'active';
-        }
-
+        // Toggle between 'active' and 'inactive' only
+        $newStatus = $product->status === 'active' ? 'inactive' : 'active';
+        
         $product->update(['status' => $newStatus]);
 
         return back()->with('success', "Listing status updated to {$newStatus}.");
     }
 
     /**
-     * Mark product as rented (alternative method)
+     * Mark product as rented (sets rental_status)
      */
     public function markAsRented(Product $product)
     {
@@ -165,7 +174,10 @@ class ProductController extends Controller
             abort(403);
         }
 
-        $product->update(['status' => 'rented']);
+        $product->update([
+            'status' => 'active', // Keep status as active
+            'rental_status' => 'rented' // Set rental_status to rented
+        ]);
 
         return back()->with('success', 'Product marked as rented.');
     }

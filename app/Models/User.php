@@ -79,4 +79,16 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class, 'user_id', 'id');
     }
 
+    // Borrowed products by the user
+    public function borrowedProducts()
+    {
+        return $this->hasManyThrough(
+            Product::class,
+            Booking::class,
+            'renter_id', // Foreign key on bookings table
+            'product_id', // Foreign key on products table
+            'id', // Local key on users table
+            'product_id' // Local key on bookings table
+        )->where('bookings.status', 'completed');
+    }
 }

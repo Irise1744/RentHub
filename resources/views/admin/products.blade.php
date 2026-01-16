@@ -25,6 +25,25 @@
     </ul>
   </nav>
 
+  <!-- Borrowed Products History -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4">Borrowed Products History</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      @forelse ($borrowedProducts as $product)
+      <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <img src="{{ $product->image_url ? \Illuminate\Support\Facades\Storage::url($product->image_url) : asset('storage/products/default.jpg') }}" alt="{{ $product->title }}" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-lg font-semibold">{{ $product->title }}</h3>
+          <p class="text-gray-600">{{ $product->description }}</p>
+          <p class="text-gray-800 font-bold mt-2">${{ $product->price_per_day }} / day</p>
+        </div>
+      </div>
+      @empty
+      <p class="text-gray-600">No borrowed products found.</p>
+      @endforelse
+    </div>
+  </div>
+
   <!-- Listing Moderation Card -->
   <div class="bg-white rounded-lg shadow-sm p-6">
     <div class="mb-4 flex items-center justify-between">
@@ -49,7 +68,7 @@
               <div class="flex items-center space-x-3">
                 <div class="w-14 h-14 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                   @php
-                    $img = $product->image_url ? asset('storage/' . $product->image_url) : asset('images/placeholder.png');
+                  $img = $product->image_url ? asset('storage/' . $product->image_url) : asset('images/placeholder.png');
                   @endphp
                   <img src="{{ $img }}" alt="{{ $product->title }}" class="w-full h-full object-cover">
                 </div>
@@ -66,15 +85,15 @@
 
             <td class="px-4 py-4">
               @php
-                $listingStatus = strtolower($product->status ?? 'inactive');
-                $rentalStatus = strtolower($product->rental_status ?? 'available');
-                if ($listingStatus !== 'active') {
-                  $adminBadge = ['label' => 'INACTIVE', 'class' => 'bg-gray-100 text-gray-700'];
-                } elseif ($rentalStatus === 'rented') {
-                  $adminBadge = ['label' => 'RENTED', 'class' => 'bg-red-100 text-red-800'];
-                } else {
-                  $adminBadge = ['label' => 'ACTIVE', 'class' => 'bg-green-100 text-green-800'];
-                }
+              $listingStatus = strtolower($product->status ?? 'inactive');
+              $rentalStatus = strtolower($product->rental_status ?? 'available');
+              if ($listingStatus !== 'active') {
+              $adminBadge = ['label' => 'INACTIVE', 'class' => 'bg-gray-100 text-gray-700'];
+              } elseif ($rentalStatus === 'rented') {
+              $adminBadge = ['label' => 'RENTED', 'class' => 'bg-red-100 text-red-800'];
+              } else {
+              $adminBadge = ['label' => 'ACTIVE', 'class' => 'bg-green-100 text-green-800'];
+              }
               @endphp
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $adminBadge['class'] }}">{{ $adminBadge['label'] }}</span>
             </td>
